@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Cube, RotateCcw, ZoomIn, ZoomOut } from 'lucide-react'
+import { Box, RotateCcw, ZoomIn, ZoomOut } from 'lucide-react'
 import { Button } from './ui/button'
 
 interface ProductViewerProps {
@@ -37,7 +37,7 @@ export default function ProductViewer({ productName, onParameterChange }: Produc
             transform: `rotateX(${rotation.x}deg) rotateY(${rotation.y}deg) scale(${zoom})` 
           }}
         >
-          <Cube className="w-full h-full" />
+          <Box className="w-full h-full" />
         </div>
         <div className="placeholder-text">{productName}</div>
         <div className="placeholder-subtext">3D Model Viewer</div>
