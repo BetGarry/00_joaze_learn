@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils"
 function Card({
   className,
   ...props
-}) {
+}: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       data-slot="card"
@@ -20,7 +20,7 @@ function Card({
 function CardHeader({
   className,
   ...props
-}) {
+}: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       data-slot="card-header"
@@ -35,7 +35,7 @@ function CardHeader({
 function CardTitle({
   className,
   ...props
-}) {
+}: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       data-slot="card-title"
@@ -47,7 +47,7 @@ function CardTitle({
 function CardDescription({
   className,
   ...props
-}) {
+}: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       data-slot="card-description"
@@ -56,32 +56,17 @@ function CardDescription({
   );
 }
 
-function CardAction({
-  className,
-  ...props
-}) {
-  return (
-    <div
-      data-slot="card-action"
-      className={cn(
-        "col-start-2 row-span-2 row-start-1 self-start justify-self-end",
-        className
-      )}
-      {...props} />
-  );
-}
-
 function CardContent({
   className,
   ...props
-}) {
+}: React.HTMLAttributes<HTMLDivElement>) {
   return (<div data-slot="card-content" className={cn("px-6", className)} {...props} />);
 }
 
 function CardFooter({
   className,
   ...props
-}) {
+}: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       data-slot="card-footer"
@@ -95,7 +80,6 @@ export {
   CardHeader,
   CardFooter,
   CardTitle,
-  CardAction,
   CardDescription,
   CardContent,
 }

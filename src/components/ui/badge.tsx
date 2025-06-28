@@ -30,6 +30,9 @@ function Badge({
   variant,
   asChild = false,
   ...props
+}: React.HTMLAttributes<HTMLDivElement> & {
+  variant?: "default" | "secondary" | "destructive" | "outline";
+  asChild?: boolean;
 }) {
   const Comp = asChild ? Slot : "span"
 

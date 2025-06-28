@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState } from 'react'
 import { Button } from './components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/card'
 import { Badge } from './components/ui/badge'
@@ -8,13 +8,12 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Slider } from './components/ui/slider'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/select'
 import { ChevronRight, Play, Download, Eye, ShoppingCart, Settings, CreditCard, Mail, Package, RotateCcw, Info, Sparkles, Zap, Star, Heart, Diamond, Palette, Ruler, Weight, Shield } from 'lucide-react'
-import WebgiViewer from './WebgiViewer'
+import ProductViewer from './components/ProductViewer'
 import './App.css'
 
 const productConfigurator = {
   name: "Žiedas su akmeniu",
   basePrice: 450,
-  image: "/src/assets/screenshots/joaze_lt_2025-06-17_19-34-22_6571.webp",
   parameters: [
     {
       id: "metal",
@@ -154,23 +153,6 @@ function ProductConfiguratorComponent() {
     size: 18,
     comfort: "standard"
   })
-  const [isShapeDiverActive, setIsShapeDiverActive] = useState(false)
-  const paramsRef = useRef<HTMLDivElement>(null)
-  const sessionManagerRef = useRef<any>(null)
-
-  // Callback to handle ShapeDiver initialization
-  const handleShapeDiverInit = useCallback((sessionManager: any) => {
-    console.log('ShapeDiver initialized, setting active state');
-    sessionManagerRef.current = sessionManager;
-    setIsShapeDiverActive(true);
-  }, []);
-
-  // Effect to handle session manager updates
-  useEffect(() => {
-    if (sessionManagerRef.current) {
-      console.log('Session manager available:', sessionManagerRef.current);
-    }
-  }, [sessionManagerRef.current]);
 
   const calculatePrice = () => {
     let price = productConfigurator.basePrice
@@ -192,13 +174,6 @@ function ProductConfiguratorComponent() {
       const newVal = typeof prev[paramId] === 'number' ? Number(value) : value
       return { ...prev, [paramId]: newVal }
     })
-    
-    // Update WebGI model if session manager is available
-    if (sessionManagerRef.current) {
-      const parameters: { [key: string]: string } = {}
-      parameters[paramId] = value.toString()
-      sessionManagerRef.current.customizeSession(parameters)
-    }
   }
 
   return (
@@ -207,7 +182,10 @@ function ProductConfiguratorComponent() {
       <div className="space-y-6">
         <Card className="overflow-hidden bg-slate-800 border-slate-700">
           <div className="aspect-square bg-gradient-to-br from-slate-700 to-slate-800">
-            <WebgiViewer paramsRef={paramsRef} setSessionManager={handleShapeDiverInit} />
+            <ProductViewer 
+              productName={productConfigurator.name}
+              onParameterChange={updateConfig}
+            />
           </div>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -224,13 +202,13 @@ function ProductConfiguratorComponent() {
         </Card>
 
         <Card className="bg-slate-800 border-slate-700">
-          <CardHeader className="fix-1a2b3c">
+          <CardHeader>
             <CardTitle className="flex items-center gap-2 text-white">
               <Zap className="w-5 h-5 text-amber-400" />
               Kaina keičiasi realiu laiku
             </CardTitle>
           </CardHeader>
-          <CardContent className="fix-1a2b3c">
+          <CardContent>
             <p className="text-slate-300">
               Kaina automatiškai atnaujinama pagal jūsų pasirinkimus ir dabartines metalų rinkos kainas.
               Galutinė kaina gali šiek tiek skirtis dėl rinkos svyravimų.
@@ -242,24 +220,17 @@ function ProductConfiguratorComponent() {
       {/* Configuration Panel */}
       <div className="space-y-6">
         <Card className="bg-slate-800 border-slate-700">
-          <CardHeader className="fix-1a2b3c">
+          <CardHeader>
             <CardTitle className="flex items-center gap-2 text-white">
               <Settings className="w-5 h-5 text-amber-400" />
               Konfigūratorius
             </CardTitle>
             <CardDescription className="text-slate-300">
-              {isShapeDiverActive 
-                ? "ShapeDiver parametrai - keiskite 3D modelį realiu laiku"
-                : "Pritaikykite žiedą pagal savo pageidavimus. Spustelėkite info piktogramas daugiau informacijos."
-              }
+              Pritaikykite žiedą pagal savo pageidavimus. Spustelėkite info piktogramas daugiau informacijos.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* ShapeDiver parameters container */}
-            <div ref={paramsRef} className="shapediver-params-container" />
-            
-            {/* Fallback React parameters - only show when ShapeDiver is not active */}
-            {!isShapeDiverActive && productConfigurator.parameters.map((param) => (
+            {productConfigurator.parameters.map((param) => (
               <div key={param.id} className="space-y-3">
                 <div className="flex items-center gap-2">
                   <div className="text-amber-400">{param.icon}</div>
@@ -283,7 +254,7 @@ function ProductConfiguratorComponent() {
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-md bg-slate-800 border-slate-600">
-                      <DialogHeader className="fix-1a2b3c">
+                      <DialogHeader>
                         <DialogTitle className="flex items-center gap-2 text-white">
                           <div className="text-amber-400">{param.icon}</div>
                           {param.name}
@@ -315,7 +286,7 @@ function ProductConfiguratorComponent() {
                 </div>
 
                 {param.options ? (
-                  <Select value={config[param.id]} onValueChange={(value: string) => updateConfig(param.id, value)}>
+                  <Select value={config[param.id] as string} onValueChange={(value: string) => updateConfig(param.id, value)}>
                     <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
                       <SelectValue />
                     </SelectTrigger>
@@ -344,9 +315,8 @@ function ProductConfiguratorComponent() {
                       )}
                     </div>
                     <Slider
-                      value={[config[param.id]]}
-                      defaultValue={[config[param.id]]}
-                      onValueChange={(value: any) => updateConfig(param.id, value[0])}
+                      value={[config[param.id] as number]}
+                      onValueChange={(value: number[]) => updateConfig(param.id, value[0])}
                       min={param.min}
                       max={param.max}
                       step={1}
@@ -435,7 +405,7 @@ function App() {
                 {learningSteps.map(step => (
                   <Card 
                     key={step.id} 
-                    className="cursor-pointer hover:shadow-xl transition-all duration-300 bg-slate-800 border-slate-700 hover:border-amber-500/50 hover:bg-slate-750"
+                    className="cursor-pointer hover:shadow-xl transition-all duration-300 bg-slate-800 border-slate-700 hover:border-amber-500/50 hover:bg-slate-750 card-hover"
                     onClick={() => {
                       setSelectedStep(step.id);
                       setViewMode('guide');
@@ -445,7 +415,7 @@ function App() {
                       <CardTitle className="text-sm font-medium text-white">{step.id}. {step.title}</CardTitle>
                       <div className="text-amber-400">{step.icon}</div>
                     </CardHeader>
-                    <CardContent className="fix-1a2b3c">
+                    <CardContent>
                       <p className="text-sm text-slate-300">{step.description}</p>
                     </CardContent>
                   </Card>
@@ -499,10 +469,10 @@ ${'='.repeat(50)}
               {/* Sidebar Navigation */}
               <aside className="lg:col-span-1">
                 <Card className="sticky top-24 bg-slate-800 border-slate-700">
-                  <CardHeader className="fix-1a2b3c">
+                  <CardHeader>
                     <CardTitle className="text-white">Mokymosi Žingsniai</CardTitle>
                   </CardHeader>
-                  <CardContent className="fix-1a2b3c">
+                  <CardContent>
                     <nav>
                       <ul className="space-y-2">
                         {learningSteps.map(step => (
@@ -530,7 +500,7 @@ ${'='.repeat(50)}
               {/* Step Content */}
               <div className="lg:col-span-2 space-y-6">
                 <Card className="bg-slate-800 border-slate-700">
-                  <CardHeader className="fix-1a2b3c">
+                  <CardHeader>
                     <CardTitle className="text-2xl font-bold text-white">{currentStep.id}. {currentStep.title}</CardTitle>
                     <CardDescription className="text-slate-300">{currentStep.description}</CardDescription>
                   </CardHeader>
@@ -600,5 +570,3 @@ ${'='.repeat(50)}
 }
 
 export default App
-
-
