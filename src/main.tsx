@@ -1,7 +1,8 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import './App.css'
+import './index.css'
 import App from './App'
+console.log('MAIN ENTRY LOADED');
 
 const rootElement = document.getElementById('root');
 if (rootElement) {

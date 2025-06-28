@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { Button } from './components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/card'
 import { Badge } from './components/ui/badge'
@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Slider } from './components/ui/slider'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/select'
 import { ChevronRight, Play, Download, Eye, ShoppingCart, Settings, CreditCard, Mail, Package, RotateCcw, Info, Sparkles, Zap, Star, Heart, Diamond, Palette, Ruler, Weight, Shield } from 'lucide-react'
-import ProductViewer from './components/ProductViewer'
+import WebgiViewer from './WebgiViewer'
 import './App.css'
 
 const productConfigurator = {
@@ -153,6 +153,23 @@ function ProductConfiguratorComponent() {
     size: 18,
     comfort: "standard"
   })
+  const [isShapeDiverActive, setIsShapeDiverActive] = useState(false)
+  const paramsRef = useRef<HTMLDivElement>(null)
+  const sessionManagerRef = useRef<any>(null)
+
+  // Callback to handle ShapeDiver initialization
+  const handleShapeDiverInit = useCallback((sessionManager: any) => {
+    console.log('ShapeDiver initialized, setting active state');
+    sessionManagerRef.current = sessionManager;
+    setIsShapeDiverActive(true);
+  }, []);
+
+  // Effect to handle session manager updates
+  useEffect(() => {
+    if (sessionManagerRef.current) {
+      console.log('Session manager available:', sessionManagerRef.current);
+    }
+  }, [sessionManagerRef.current]);
 
   const calculatePrice = () => {
     let price = productConfigurator.basePrice
@@ -174,6 +191,13 @@ function ProductConfiguratorComponent() {
       const newVal = typeof prev[paramId] === 'number' ? Number(value) : value
       return { ...prev, [paramId]: newVal }
     })
+    
+    // Update WebGI model if session manager is available
+    if (sessionManagerRef.current) {
+      const parameters: { [key: string]: string } = {}
+      parameters[paramId] = value.toString()
+      sessionManagerRef.current.customizeSession(parameters)
+    }
   }
 
   return (
@@ -182,10 +206,7 @@ function ProductConfiguratorComponent() {
       <div className="space-y-6">
         <Card className="overflow-hidden bg-slate-800 border-slate-700">
           <div className="aspect-square bg-gradient-to-br from-slate-700 to-slate-800">
-            <ProductViewer 
-              productName={productConfigurator.name}
-              onParameterChange={updateConfig}
-            />
+            <WebgiViewer paramsRef={paramsRef} setSessionManager={handleShapeDiverInit} />
           </div>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -226,11 +247,18 @@ function ProductConfiguratorComponent() {
               Konfigūratorius
             </CardTitle>
             <CardDescription className="text-slate-300">
-              Pritaikykite žiedą pagal savo pageidavimus. Spustelėkite info piktogramas daugiau informacijos.
+              {isShapeDiverActive 
+                ? "ShapeDiver parametrai - keiskite 3D modelį realiu laiku"
+                : "Pritaikykite žiedą pagal savo pageidavimus. Spustelėkite info piktogramas daugiau informacijos."
+              }
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {productConfigurator.parameters.map((param) => (
+            {/* ShapeDiver parameters container */}
+            <div ref={paramsRef} className="shapediver-params-container" />
+            
+            {/* Fallback React parameters - only show when ShapeDiver is not active */}
+            {!isShapeDiverActive && productConfigurator.parameters.map((param) => (
               <div key={param.id} className="space-y-3">
                 <div className="flex items-center gap-2">
                   <div className="text-amber-400">{param.icon}</div>
