@@ -14,7 +14,6 @@ import './App.css'
 const productConfigurator = {
   name: "Žiedas su akmeniu",
   basePrice: 450,
-  image: "/src/assets/screenshots/joaze_lt_2025-06-17_19-34-22_6571.webp",
   parameters: [
     {
       id: "metal",
@@ -224,13 +223,13 @@ function ProductConfiguratorComponent() {
         </Card>
 
         <Card className="bg-slate-800 border-slate-700">
-          <CardHeader className="fix-1a2b3c">
+          <CardHeader>
             <CardTitle className="flex items-center gap-2 text-white">
               <Zap className="w-5 h-5 text-amber-400" />
               Kaina keičiasi realiu laiku
             </CardTitle>
           </CardHeader>
-          <CardContent className="fix-1a2b3c">
+          <CardContent>
             <p className="text-slate-300">
               Kaina automatiškai atnaujinama pagal jūsų pasirinkimus ir dabartines metalų rinkos kainas.
               Galutinė kaina gali šiek tiek skirtis dėl rinkos svyravimų.
@@ -242,7 +241,7 @@ function ProductConfiguratorComponent() {
       {/* Configuration Panel */}
       <div className="space-y-6">
         <Card className="bg-slate-800 border-slate-700">
-          <CardHeader className="fix-1a2b3c">
+          <CardHeader>
             <CardTitle className="flex items-center gap-2 text-white">
               <Settings className="w-5 h-5 text-amber-400" />
               Konfigūratorius
@@ -283,7 +282,7 @@ function ProductConfiguratorComponent() {
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-md bg-slate-800 border-slate-600">
-                      <DialogHeader className="fix-1a2b3c">
+                      <DialogHeader>
                         <DialogTitle className="flex items-center gap-2 text-white">
                           <div className="text-amber-400">{param.icon}</div>
                           {param.name}
@@ -315,7 +314,7 @@ function ProductConfiguratorComponent() {
                 </div>
 
                 {param.options ? (
-                  <Select value={config[param.id]} onValueChange={(value: string) => updateConfig(param.id, value)}>
+                  <Select value={config[param.id] as string} onValueChange={(value: string) => updateConfig(param.id, value)}>
                     <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
                       <SelectValue />
                     </SelectTrigger>
@@ -344,9 +343,8 @@ function ProductConfiguratorComponent() {
                       )}
                     </div>
                     <Slider
-                      value={[config[param.id]]}
-                      defaultValue={[config[param.id]]}
-                      onValueChange={(value: any) => updateConfig(param.id, value[0])}
+                      value={[config[param.id] as number]}
+                      onValueChange={(value: number[]) => updateConfig(param.id, value[0])}
                       min={param.min}
                       max={param.max}
                       step={1}
@@ -435,7 +433,7 @@ function App() {
                 {learningSteps.map(step => (
                   <Card 
                     key={step.id} 
-                    className="cursor-pointer hover:shadow-xl transition-all duration-300 bg-slate-800 border-slate-700 hover:border-amber-500/50 hover:bg-slate-750"
+                    className="cursor-pointer hover:shadow-xl transition-all duration-300 bg-slate-800 border-slate-700 hover:border-amber-500/50 hover:bg-slate-750 card-hover"
                     onClick={() => {
                       setSelectedStep(step.id);
                       setViewMode('guide');
@@ -445,7 +443,7 @@ function App() {
                       <CardTitle className="text-sm font-medium text-white">{step.id}. {step.title}</CardTitle>
                       <div className="text-amber-400">{step.icon}</div>
                     </CardHeader>
-                    <CardContent className="fix-1a2b3c">
+                    <CardContent>
                       <p className="text-sm text-slate-300">{step.description}</p>
                     </CardContent>
                   </Card>
@@ -499,10 +497,10 @@ ${'='.repeat(50)}
               {/* Sidebar Navigation */}
               <aside className="lg:col-span-1">
                 <Card className="sticky top-24 bg-slate-800 border-slate-700">
-                  <CardHeader className="fix-1a2b3c">
+                  <CardHeader>
                     <CardTitle className="text-white">Mokymosi Žingsniai</CardTitle>
                   </CardHeader>
-                  <CardContent className="fix-1a2b3c">
+                  <CardContent>
                     <nav>
                       <ul className="space-y-2">
                         {learningSteps.map(step => (
@@ -530,7 +528,7 @@ ${'='.repeat(50)}
               {/* Step Content */}
               <div className="lg:col-span-2 space-y-6">
                 <Card className="bg-slate-800 border-slate-700">
-                  <CardHeader className="fix-1a2b3c">
+                  <CardHeader>
                     <CardTitle className="text-2xl font-bold text-white">{currentStep.id}. {currentStep.title}</CardTitle>
                     <CardDescription className="text-slate-300">{currentStep.description}</CardDescription>
                   </CardHeader>
@@ -600,5 +598,3 @@ ${'='.repeat(50)}
 }
 
 export default App
-
-

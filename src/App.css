@@ -229,67 +229,6 @@
   }
 }
 
-/* Progress indicators */
-.progress-ring {
-  transition: stroke-dasharray 0.35s;
-  transform: rotate(-90deg);
-  transform-origin: 50% 50%;
-}
-
-/* Tooltip enhancements */
-.tooltip-enhanced {
-  background: rgba(0, 0, 0, 0.9);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* Mobile-first responsive enhancements */
-@media (max-width: 768px) {
-  .mobile-stack {
-    flex-direction: column;
-  }
-  
-  .mobile-full {
-    width: 100%;
-  }
-  
-  .mobile-text-center {
-    text-align: center;
-  }
-}
-
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .auto-dark {
-    background-color: #1f2937;
-    color: #f9fafb;
-  }
-  
-  .auto-dark-card {
-    background-color: #374151;
-    border-color: #4b5563;
-  }
-}
-
-/* Accessibility improvements */
-.focus-visible:focus-visible {
-  outline: 2px solid #f59e0b;
-  outline-offset: 2px;
-}
-
-.reduced-motion {
-  animation: none !important;
-  transition: none !important;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
 /* Video responsive styling */
 .video-responsive {
   position: relative;
@@ -322,100 +261,37 @@
   }
 }
 
-/* ShapeDiver Parameters Container Styles */
-.shapediver-params-container {
-  position: relative;
-  z-index: 10;
-  width: 100%;
-  min-height: 200px;
-  overflow: visible;
+/* Radial gradient utility */
+.bg-gradient-radial {
+  background: radial-gradient(circle, var(--tw-gradient-stops));
 }
 
-.shapediver-params-container .tp-container {
-  position: relative !important;
-  z-index: 10 !important;
-  width: 100% !important;
+/* 3D Ring Animation */
+@keyframes ringGlow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(251, 191, 36, 0.6);
+  }
 }
 
-.shapediver-params-container .tp-root {
-  position: relative !important;
-  z-index: 10 !important;
-  width: 100% !important;
+.ring-glow {
+  animation: ringGlow 2s ease-in-out infinite;
 }
 
-/* Ensure ShapeDiver UI elements don't conflict with other UI */
-#tweakpaneUiContainer {
-  position: relative !important;
-  z-index: 10 !important;
-  width: 100% !important;
-  min-height: 200px !important;
+/* Gem sparkle effect */
+@keyframes sparkle {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
 }
 
-/* Hide any duplicate containers */
-.tp-container:not(:first-child) {
-  display: none !important;
+.gem-sparkle {
+  animation: sparkle 1.5s ease-in-out infinite;
 }
-
-.tp-root:not(:first-child) {
-  display: none !important;
-}
-
-/* Ensure proper styling for ShapeDiver parameters */
-.tp-rotv {
-  font-size: 13px !important;
-  background: rgba(255, 255, 255, 0.1) !important;
-  border-radius: 8px !important;
-  margin-bottom: 8px !important;
-}
-
-.tp-rotv_b {
-  padding: 8px 12px !important;
-  color: white !important;
-  font-weight: 500 !important;
-}
-
-.tp-rotv_t {
-  color: white !important;
-}
-
-/* Ensure parameters are properly spaced */
-.tp-fldv {
-  margin: 8px 0 !important;
-}
-
-.tp-lblv_l {
-  color: white !important;
-}
-
-.tp-lblv_v {
-  color: white !important;
-}
-
-/* Hide any floating duplicate containers */
-body > #tweakpaneUiContainer:not(:first-child) {
-  display: none !important;
-}
-
-body > .tp-container:not(:first-child) {
-  display: none !important;
-}
-
-body > .tp-root:not(:first-child) {
-  display: none !important;
-}
-
-/* Hide any tweakpane containers that are not inside our React component */
-body > .tp-rotv:not(.shapediver-params-container .tp-rotv) {
-  display: none !important;
-}
-
-/* Ensure only the first tweakpane container is visible */
-#tweakpaneUiContainer:not(:first-of-type) {
-  display: none !important;
-}
-
-/* Hide any duplicate tweakpane containers that might be created */
-.tp-container:not(.shapediver-params-container .tp-container) {
-  display: none !important;
-}
-
