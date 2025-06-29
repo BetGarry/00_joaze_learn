@@ -155,6 +155,8 @@ function ProductConfiguratorComponent() {
     comfort: "standard"
   })
   const [isShapeDiverActive, setIsShapeDiverActive] = useState(false)
+  const [isShapeDiverLoading, setIsShapeDiverLoading] = useState(true)
+  const [shapeDiverError, setShapeDiverError] = useState<string | null>(null)
   const paramsRef = useRef<HTMLDivElement>(null)
   const sessionManagerRef = useRef<any>(null)
 
@@ -163,6 +165,8 @@ function ProductConfiguratorComponent() {
     console.log('ShapeDiver initialized, setting active state');
     sessionManagerRef.current = sessionManager;
     setIsShapeDiverActive(true);
+    setIsShapeDiverLoading(false);
+    setShapeDiverError(null);
   }, []);
 
   // Effect to handle session manager updates
@@ -171,6 +175,19 @@ function ProductConfiguratorComponent() {
       console.log('Session manager available:', sessionManagerRef.current);
     }
   }, [sessionManagerRef.current]);
+
+  // Effect to handle ShapeDiver loading timeout
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (!isShapeDiverActive && isShapeDiverLoading) {
+        console.log('ShapeDiver loading timeout - falling back to React parameters');
+        setIsShapeDiverLoading(false);
+        setShapeDiverError('ShapeDiver parameters failed to load. Using fallback configuration.');
+      }
+    }, 10000); // 10 second timeout
+
+    return () => clearTimeout(timeout);
+  }, [isShapeDiverActive, isShapeDiverLoading]);
 
   const calculatePrice = () => {
     let price = productConfigurator.basePrice
@@ -248,7 +265,9 @@ function ProductConfiguratorComponent() {
               Konfigūratorius
             </CardTitle>
             <CardDescription className="text-slate-300">
-              {isShapeDiverActive 
+              {isShapeDiverLoading 
+                ? "Kraunami ShapeDiver parametrai..."
+                : isShapeDiverActive 
                 ? "ShapeDiver parametrai - keiskite 3D modelį realiu laiku"
                 : "Pritaikykite žiedą pagal savo pageidavimus. Spustelėkite info piktogramas daugiau informacijos."
               }
@@ -258,8 +277,23 @@ function ProductConfiguratorComponent() {
             {/* ShapeDiver parameters container */}
             <div ref={paramsRef} className="shapediver-params-container" />
             
+            {/* Loading state */}
+            {isShapeDiverLoading && (
+              <div className="flex items-center justify-center p-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-400"></div>
+                <span className="ml-3 text-slate-300">Kraunami parametrai...</span>
+              </div>
+            )}
+            
+            {/* Error state */}
+            {shapeDiverError && (
+              <div className="p-4 bg-red-900/20 border border-red-500/30 rounded-lg">
+                <p className="text-red-300 text-sm">{shapeDiverError}</p>
+              </div>
+            )}
+            
             {/* Fallback React parameters - only show when ShapeDiver is not active */}
-            {!isShapeDiverActive && productConfigurator.parameters.map((param) => (
+            {!isShapeDiverActive && !isShapeDiverLoading && productConfigurator.parameters.map((param) => (
               <div key={param.id} className="space-y-3">
                 <div className="flex items-center gap-2">
                   <div className="text-amber-400">{param.icon}</div>
@@ -367,6 +401,91 @@ function ProductConfiguratorComponent() {
           <ShoppingCart className="w-5 h-5 mr-2" />
           Įdėti į krepšelį - €{calculatePrice()}
         </Button>
+        
+        {/* Debug section */}
+        <Card className="bg-slate-800 border-slate-700">
+          <CardHeader className="fix-1a2b3c">
+            <CardTitle className="text-white">Debug Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="text-sm text-slate-300">
+              <p><strong>ShapeDiver Active:</strong> {isShapeDiverActive ? 'Yes' : 'No'}</p>
+              <p><strong>ShapeDiver Loading:</strong> {isShapeDiverLoading ? 'Yes' : 'No'}</p>
+              <p><strong>Session Manager:</strong> {sessionManagerRef.current ? 'Available' : 'Not available'}</p>
+              <p><strong>Parameters Container:</strong> {paramsRef.current ? 'Found' : 'Not found'}</p>
+              {paramsRef.current && (
+                <p><strong>Container Children:</strong> {paramsRef.current.children.length}</p>
+              )}
+            </div>
+            
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="border-slate-600 text-slate-300 hover:bg-slate-700"
+              onClick={() => {
+                console.log('=== DEBUG INFO ===');
+                console.log('ShapeDiver Active:', isShapeDiverActive);
+                console.log('ShapeDiver Loading:', isShapeDiverLoading);
+                console.log('Session Manager:', sessionManagerRef.current);
+                console.log('Params Ref:', paramsRef.current);
+                
+                if (paramsRef.current) {
+                  console.log('Container children:', paramsRef.current.children);
+                  console.log('Container HTML:', paramsRef.current.innerHTML);
+                }
+                
+                const tweakpaneContainer = document.querySelector('#tweakpaneUiContainer');
+                const tpContainer = document.querySelector('.tp-container');
+                const tpRoot = document.querySelector('.tp-root');
+                const tpRotv = document.querySelectorAll('.tp-rotv');
+                
+                console.log('DOM Elements:');
+                console.log('- tweakpaneUiContainer:', tweakpaneContainer);
+                console.log('- tp-container:', tpContainer);
+                console.log('- tp-root:', tpRoot);
+                console.log('- tp-rotv count:', tpRotv.length);
+                
+                if (tpRotv.length > 0) {
+                  console.log('Parameter elements:');
+                  Array.from(tpRotv).forEach((el, index) => {
+                    const label = el.querySelector('.tp-lblv_l');
+                    console.log(`  ${index + 1}. ${label?.textContent || 'Unknown'}`);
+                  });
+                }
+              }}
+            >
+              Log Debug Info
+            </Button>
+            
+            {/* Test parameter update button */}
+            {sessionManagerRef.current && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                onClick={() => {
+                  console.log('=== TESTING PARAMETER UPDATE ===');
+                  const testParams = {
+                    plotis: '5.5',
+                    storis: '2.0',
+                    aukstis: '3.0'
+                  };
+                  console.log('Testing with parameters:', testParams);
+                  
+                  sessionManagerRef.current.customizeSession(testParams)
+                    .then(() => {
+                      console.log('Parameter update test successful');
+                    })
+                    .catch((error: any) => {
+                      console.error('Parameter update test failed:', error);
+                    });
+                }}
+              >
+                Test Parameter Update
+              </Button>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

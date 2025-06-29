@@ -46,19 +46,37 @@ export class SessionManager {
    * @param parameters Key value pairs of parameter id and stringified parameter value
    */
   public async customizeSession(parameters: { [key: string]: string }) {
-    console.log("Parameter values", parameters);
+    console.log("SessionManager.customizeSession called with parameters:", parameters);
     const customizationCounter = ++this.customizationCounter;
 
-    await this.sessionApi?.customize(parameters);
+    try {
+      if (!this.sessionApi) {
+        console.error("Session API not available");
+        return;
+      }
 
-    /**
-     * If another customization request has been made, we stop our progress and
-     * abort this request.
-     * Additionally, you could change requests to get all results.
-     */
-    if (this.customizationCounter !== customizationCounter) return;
+      console.log("Calling sessionApi.customize with parameters:", parameters);
+      await this.sessionApi.customize(parameters);
+      console.log("Session customization completed successfully");
 
-    await this.processOutputUpdates(false);
+      /**
+       * If another customization request has been made, we stop our progress and
+       * abort this request.
+       * Additionally, you could change requests to get all results.
+       */
+      if (this.customizationCounter !== customizationCounter) {
+        console.log("Customization request superseded, aborting");
+        return;
+      }
+
+      console.log("Processing output updates...");
+      await this.processOutputUpdates(false);
+      console.log("Output updates processed successfully");
+      
+    } catch (error) {
+      console.error("Error in customizeSession:", error);
+      throw error;
+    }
   }
 
   /**

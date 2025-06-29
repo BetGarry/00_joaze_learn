@@ -25,10 +25,24 @@ let currentUiPlugin: any = null; // Track the current UI plugin
 
 // Function to clean up all ShapeDiver UI elements
 function cleanupShapeDiverUI() {
+  console.log('Cleaning up ShapeDiver UI elements...');
+  
   // Remove all existing tweakpane containers and UI elements
-  document.querySelectorAll('#tweakpaneUiContainer').forEach(el => el.remove());
-  document.querySelectorAll('.tp-container').forEach(el => el.remove());
-  document.querySelectorAll('.tp-root').forEach(el => el.remove());
+  document.querySelectorAll('#tweakpaneUiContainer').forEach(el => {
+    console.log('Removing tweakpaneUiContainer:', el);
+    el.remove();
+  });
+  
+  document.querySelectorAll('.tp-container').forEach(el => {
+    console.log('Removing tp-container:', el);
+    el.remove();
+  });
+  
+  document.querySelectorAll('.tp-root').forEach(el => {
+    console.log('Removing tp-root:', el);
+    el.remove();
+  });
+  
   document.querySelectorAll('.tp-folder').forEach(el => el.remove());
   document.querySelectorAll('.tp-folderv').forEach(el => el.remove());
   document.querySelectorAll('.tp-btnv').forEach(el => el.remove());
@@ -48,22 +62,19 @@ function cleanupShapeDiverUI() {
   // Remove any ShapeDiver specific containers
   document.querySelectorAll('.shapediver-params-container').forEach(el => {
     if (el instanceof HTMLElement) {
+      console.log('Clearing shapediver-params-container:', el);
       el.innerHTML = '';
     }
   });
   
   // Remove any duplicate tweakpane containers that might be left
   const allTweakpaneContainers = document.querySelectorAll('[id*="tweakpane"]');
-  allTweakpaneContainers.forEach(el => el.remove());
+  allTweakpaneContainers.forEach(el => {
+    console.log('Removing tweakpane container:', el);
+    el.remove();
+  });
   
-  // Remove any duplicate tp-rotv elements
-  const allTpRotv = document.querySelectorAll('.tp-rotv');
-  if (allTpRotv.length > 1) {
-    // Keep only the first one, remove the rest
-    for (let i = 1; i < allTpRotv.length; i++) {
-      allTpRotv[i].remove();
-    }
-  }
+  console.log('ShapeDiver UI cleanup complete');
 }
 
 export default async function initWebgi(
@@ -73,6 +84,8 @@ export default async function initWebgi(
   onParameterChange?: (paramId: string, value: string) => void
 ) {
   console.log('Initializing WebGI viewer...');
+  console.log('Canvas element:', canvas);
+  console.log('Params div element:', paramsDiv);
   
   // Clean up existing viewer if it exists
   if (currentViewer) {
@@ -112,6 +125,9 @@ export default async function initWebgi(
   if (!ticket) {
     ticket = DEFAULT_TICKET;
   }
+
+  console.log('Using ShapeDiver ticket:', ticket ? 'Available' : 'Not available');
+  console.log('Model view URL:', modelViewUrl);
 
   console.log('Creating new viewer instance...');
   const viewer = new CoreViewerApp({canvas});
@@ -177,31 +193,83 @@ export default async function initWebgi(
 
   if (ticket) {
     console.log('Setting up ShapeDiver session...');
-    // Use ShapeDiver ticket
-    const sessionManager = new SessionManager(ticket, modelViewUrl);
-    const updateHandler = await viewer.addPlugin(new ShapeDiverUpdateHandler())
-    updateHandler.processModel = processModel
-    sessionManager.outputUpdateHandler = updateHandler.outputUpdateHandler;
-    await sessionManager.init();
-    
-    // Pass session manager back to React component
-    if (setSessionManager) {
-      setSessionManager(sessionManager);
+    try {
+      // Use ShapeDiver ticket
+      const sessionManager = new SessionManager(ticket, modelViewUrl);
+      const updateHandler = await viewer.addPlugin(new ShapeDiverUpdateHandler())
+      updateHandler.processModel = processModel
+      sessionManager.outputUpdateHandler = updateHandler.outputUpdateHandler;
+      
+      console.log('Initializing ShapeDiver session...');
+      await sessionManager.init();
+      console.log('ShapeDiver session initialized successfully');
+      
+      // Log parameters information
+      if (sessionManager.parameters) {
+        console.log('ShapeDiver parameters found:', Object.keys(sessionManager.parameters));
+        Object.keys(sessionManager.parameters).forEach(paramId => {
+          const param = sessionManager.parameters![paramId];
+          console.log(`Parameter ${paramId}:`, {
+            name: param.name,
+            type: param.type,
+            defval: param.defval,
+            hidden: param.hidden
+          });
+        });
+      } else {
+        console.warn('No ShapeDiver parameters found');
+      }
+      
+      // Pass session manager back to React component
+      if (setSessionManager) {
+        console.log('Passing session manager to React component');
+        setSessionManager(sessionManager);
+      }
+      
+      // Create ShapeDiver parameters UI with the correct callback signature
+      if (sessionManager.parameters) {
+        console.log('Creating ParameterUI...');
+        const paramsUi = new ParameterUI(
+            sessionManager.parameters,
+            sessionManager.customizeSession.bind(sessionManager)
+        );
+        
+        console.log('ParameterUI created, setting up debug UI...');
+        // Set up debug UI - this will handle clearing and setting up the UI properly
+        await setupDebugUi(viewer, isMobile, paramsUi, paramsDiv)
+        
+        // Store the UI plugin reference
+        currentUiPlugin = viewer.getPlugin('TweakpaneUiPlugin');
+        
+        console.log('ShapeDiver session setup complete');
+        
+        // Verify that the UI elements were created
+        setTimeout(() => {
+          const tweakpaneContainer = document.querySelector('#tweakpaneUiContainer');
+          const tpContainer = document.querySelector('.tp-container');
+          const tpRoot = document.querySelector('.tp-root');
+          
+          console.log('UI elements verification:');
+          console.log('- tweakpaneUiContainer:', tweakpaneContainer ? 'Found' : 'Not found');
+          console.log('- tp-container:', tpContainer ? 'Found' : 'Not found');
+          console.log('- tp-root:', tpRoot ? 'Found' : 'Not found');
+          
+          if (tweakpaneContainer) {
+            console.log('- tweakpaneUiContainer children:', tweakpaneContainer.children.length);
+          }
+        }, 1000);
+        
+      } else {
+        console.error('No parameters available for UI creation');
+      }
+      
+    } catch (error) {
+      console.error('Error setting up ShapeDiver session:', error);
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      });
     }
-    
-    // Create ShapeDiver parameters UI with the correct callback signature
-    const paramsUi = new ParameterUI(
-        sessionManager.parameters!,
-        sessionManager.customizeSession.bind(sessionManager)
-    );
-    
-    // Set up debug UI - this will handle clearing and setting up the UI properly
-    await setupDebugUi(viewer, isMobile, paramsUi, paramsDiv)
-    
-    // Store the UI plugin reference
-    currentUiPlugin = viewer.getPlugin('TweakpaneUiPlugin');
-    
-    console.log('ShapeDiver session setup complete');
   } else {
     console.log('No ShapeDiver ticket found, running in demo mode');
   }

@@ -329,18 +329,25 @@
   width: 100%;
   min-height: 200px;
   overflow: visible;
+  background: rgba(30, 41, 59, 0.5);
+  border-radius: 8px;
+  padding: 16px;
+  margin: 16px 0;
+  border: 1px solid rgba(148, 163, 184, 0.2);
 }
 
 .shapediver-params-container .tp-container {
   position: relative !important;
   z-index: 10 !important;
   width: 100% !important;
+  display: block !important;
 }
 
 .shapediver-params-container .tp-root {
   position: relative !important;
   z-index: 10 !important;
   width: 100% !important;
+  display: block !important;
 }
 
 /* Ensure ShapeDiver UI elements don't conflict with other UI */
@@ -349,23 +356,17 @@
   z-index: 10 !important;
   width: 100% !important;
   min-height: 200px !important;
-}
-
-/* Hide any duplicate containers */
-.tp-container:not(:first-child) {
-  display: none !important;
-}
-
-.tp-root:not(:first-child) {
-  display: none !important;
+  display: block !important;
 }
 
 /* Ensure proper styling for ShapeDiver parameters */
 .tp-rotv {
   font-size: 13px !important;
-  background: rgba(255, 255, 255, 0.1) !important;
+  background: rgba(51, 65, 85, 0.8) !important;
   border-radius: 8px !important;
   margin-bottom: 8px !important;
+  border: 1px solid rgba(148, 163, 184, 0.3) !important;
+  display: block !important;
 }
 
 .tp-rotv_b {
@@ -381,41 +382,165 @@
 /* Ensure parameters are properly spaced */
 .tp-fldv {
   margin: 8px 0 !important;
+  display: block !important;
 }
 
 .tp-lblv_l {
   color: white !important;
+  font-weight: 500 !important;
 }
 
 .tp-lblv_v {
   color: white !important;
 }
 
-/* Hide any floating duplicate containers */
-body > #tweakpaneUiContainer:not(:first-child) {
-  display: none !important;
+/* Ensure sliders and inputs are visible */
+.tp-sliderv {
+  display: block !important;
+  width: 100% !important;
 }
 
-body > .tp-container:not(:first-child) {
-  display: none !important;
+.tp-inputv {
+  display: block !important;
+  width: 100% !important;
 }
 
-body > .tp-root:not(:first-child) {
-  display: none !important;
+.tp-checkboxv {
+  display: block !important;
 }
 
-/* Hide any tweakpane containers that are not inside our React component */
+.tp-colv {
+  display: block !important;
+}
+
+.tp-lstv {
+  display: block !important;
+}
+
+/* Only hide elements that are outside our container */
 body > .tp-rotv:not(.shapediver-params-container .tp-rotv) {
   display: none !important;
 }
 
-/* Ensure only the first tweakpane container is visible */
-#tweakpaneUiContainer:not(:first-of-type) {
-  display: none !important;
+/* Ensure the main container is always visible */
+.shapediver-params-container:has(.tp-container) {
+  display: block !important;
 }
 
-/* Hide any duplicate tweakpane containers that might be created */
-.tp-container:not(.shapediver-params-container .tp-container) {
-  display: none !important;
+/* Add some debugging styles to help identify issues */
+.shapediver-params-container:empty::before {
+  content: "ShapeDiver parameters will appear here...";
+  color: rgba(148, 163, 184, 0.6);
+  font-style: italic;
+  display: block;
+  text-align: center;
+  padding: 20px;
+}
+
+/* Ensure proper contrast for better visibility */
+.tp-rotv input,
+.tp-rotv select,
+.tp-rotv button {
+  background: rgba(51, 65, 85, 0.9) !important;
+  color: white !important;
+  border: 1px solid rgba(148, 163, 184, 0.4) !important;
+}
+
+.tp-rotv input:focus,
+.tp-rotv select:focus,
+.tp-rotv button:focus {
+  border-color: #f59e0b !important;
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2) !important;
+}
+
+/* Slider specific styling */
+.tp-sldv {
+  cursor: pointer !important;
+}
+
+.tp-sldv_t {
+  cursor: pointer !important;
+  background: rgba(148, 163, 184, 0.3) !important;
+  border-radius: 4px !important;
+}
+
+.tp-sldv_k {
+  background: #f59e0b !important;
+  border-radius: 4px !important;
+  transition: background-color 0.2s ease !important;
+}
+
+.tp-sldv_k:hover {
+  background: #ea580c !important;
+}
+
+.tp-sldv_t:focus {
+  outline: 2px solid #f59e0b !important;
+  outline-offset: 2px !important;
+}
+
+/* Input field styling */
+.tp-txtv_i {
+  background: rgba(51, 65, 85, 0.9) !important;
+  color: white !important;
+  border: 1px solid rgba(148, 163, 184, 0.4) !important;
+  border-radius: 4px !important;
+  padding: 4px 8px !important;
+  font-size: 12px !important;
+}
+
+.tp-txtv_i:focus {
+  border-color: #f59e0b !important;
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2) !important;
+}
+
+/* Dropdown styling */
+.tp-lstv_s {
+  background: rgba(51, 65, 85, 0.9) !important;
+  color: white !important;
+  border: 1px solid rgba(148, 163, 184, 0.4) !important;
+  border-radius: 4px !important;
+  padding: 4px 8px !important;
+  font-size: 12px !important;
+  cursor: pointer !important;
+}
+
+.tp-lstv_s:focus {
+  border-color: #f59e0b !important;
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2) !important;
+}
+
+/* Checkbox styling */
+.tp-ckbv_i {
+  accent-color: #f59e0b !important;
+}
+
+.tp-ckbv_w {
+  border-color: rgba(148, 163, 184, 0.4) !important;
+}
+
+.tp-ckbv_w svg {
+  color: #f59e0b !important;
+}
+
+/* Ensure proper spacing and alignment */
+.tp-lblv {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin-bottom: 8px !important;
+}
+
+.tp-lblv_l {
+  min-width: 120px !important;
+  flex-shrink: 0 !important;
+}
+
+.tp-lblv_v {
+  flex: 1 !important;
+  min-width: 0 !important;
 }
 

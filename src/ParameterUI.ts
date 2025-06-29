@@ -18,6 +18,8 @@ export class ParameterUI implements IUiConfigContainer{
       [key: string]: string;
     }) => Promise<void>
   ) {
+    console.log('ParameterUI constructor called with parameters:', parameters);
+    console.log('Number of parameters:', Object.keys(parameters).length);
 
     this.uiConfig = {
       type: "folder",
@@ -34,7 +36,18 @@ export class ParameterUI implements IUiConfigContainer{
       // get the parameter and assign the properties
       const parameterObject = parameters[p];
       const description = (parameterObject as any).description as string | undefined;
-      if(parameterObject.hidden === true) continue;
+      
+      console.log(`Processing parameter ${p}:`, {
+        name: parameterObject.name,
+        type: parameterObject.type,
+        hidden: parameterObject.hidden,
+        defval: parameterObject.defval
+      });
+      
+      if(parameterObject.hidden === true) {
+        console.log(`Skipping hidden parameter: ${p}`);
+        continue;
+      }
 
       this.parameterValues[parameterObject.id] = parameterObject.defval;
       props[p] = parameterObject.defval;
@@ -57,61 +70,123 @@ export class ParameterUI implements IUiConfigContainer{
         else
           stepSize = 1 / Math.pow(10, parameterObject.decimalplaces!);
 
-
-        this.uiConfig.children?.push({
+        const sliderConfig = {
           uuid: parameterObject.id,
           type: "slider",
           label: parameterObject.name,
           tooltip: description,
-          property: [props, p],
+          property: [props, p] as [any, string],
           bounds: [parameterObject.min!, parameterObject.max!],
           stepSize,
           onChange: (ev:any) => {
-            if(!ev.last) return;
-            this.parameterValues[parameterObject.id] = parameterObject.decimalplaces !== undefined ? props[p].toFixed(parameterObject.decimalplaces) + '' : props[p] + '';
-            parameterUpdateCallback(this.parameterValues);
+            console.log(`Slider onChange for ${parameterObject.id}:`, {
+              event: ev,
+              value: props[p],
+              last: ev.last,
+              type: typeof ev.last
+            });
+            
+            // Always update the parameter value, not just on last event
+            const newValue = parameterObject.decimalplaces !== undefined ? 
+              Number(props[p]).toFixed(parameterObject.decimalplaces) : 
+              props[p].toString();
+            
+            this.parameterValues[parameterObject.id] = newValue;
+            console.log(`Updated parameter ${parameterObject.id} to:`, newValue);
+            
+            // Call the update callback
+            parameterUpdateCallback(this.parameterValues).catch(error => {
+              console.error(`Error updating parameter ${parameterObject.id}:`, error);
+            });
           }
-        })
+        };
+        
+        console.log(`Adding slider for parameter ${p}:`, sliderConfig);
+        this.uiConfig.children?.push(sliderConfig);
+        
       } else if (parameterObject.type === "Bool") {
         // cast to bool
         props[p] = parameterObject.defval === "true";
 
-        this.uiConfig.children?.push({
+        const checkboxConfig = {
           uuid: parameterObject.id,
           type: "checkbox",
           label: parameterObject.name,
           tooltip: description,
-          property: [props, p],
+          property: [props, p] as [any, string],
           onChange: () => {
-            this.parameterValues[parameterObject.id] = props[p] + '';
-            parameterUpdateCallback(this.parameterValues);
+            console.log(`Checkbox onChange for ${parameterObject.id}:`, {
+              value: props[p],
+              type: typeof props[p]
+            });
+            
+            this.parameterValues[parameterObject.id] = props[p].toString();
+            console.log(`Updated parameter ${parameterObject.id} to:`, props[p]);
+            
+            parameterUpdateCallback(this.parameterValues).catch(error => {
+              console.error(`Error updating parameter ${parameterObject.id}:`, error);
+            });
           }
-        })
+        };
+        
+        console.log(`Adding checkbox for parameter ${p}:`, checkboxConfig);
+        this.uiConfig.children?.push(checkboxConfig);
+        
       } else if (parameterObject.type === "String") {
-        this.uiConfig.children?.push({
+        const inputConfig = {
           uuid: parameterObject.id,
           type: "input",
           label: parameterObject.name,
           tooltip: description,
-          property: [props, p],
+          property: [props, p] as [any, string],
           onChange: () => {
-            this.parameterValues[parameterObject.id] = props[p] + '';
-            parameterUpdateCallback(this.parameterValues);
+            console.log(`Input onChange for ${parameterObject.id}:`, {
+              value: props[p],
+              type: typeof props[p]
+            });
+            
+            this.parameterValues[parameterObject.id] = props[p].toString();
+            console.log(`Updated parameter ${parameterObject.id} to:`, props[p]);
+            
+            parameterUpdateCallback(this.parameterValues).catch(error => {
+              console.error(`Error updating parameter ${parameterObject.id}:`, error);
+            });
           }
-        })
+        };
+        
+        console.log(`Adding input for parameter ${p}:`, inputConfig);
+        this.uiConfig.children?.push(inputConfig);
+        
       } else if (parameterObject.type === "Color") {
-        this.uiConfig.children?.push({
+        const colorConfig = {
           uuid: parameterObject.id,
           type: "color",
           label: parameterObject.name,
           tooltip: description,
-          property: [props, p],
+          property: [props, p] as [any, string],
           onChange: (ev: any) => {
+            console.log(`Color onChange for ${parameterObject.id}:`, {
+              event: ev,
+              value: props[p],
+              last: ev.last
+            });
+            
+            // Only update on last event for color picker
             if(!ev.last) return;
-            this.parameterValues[parameterObject.id] =  props[p].replace("#", "0x");
-            parameterUpdateCallback(this.parameterValues);
+            
+            const newValue = props[p].replace("#", "0x");
+            this.parameterValues[parameterObject.id] = newValue;
+            console.log(`Updated parameter ${parameterObject.id} to:`, newValue);
+            
+            parameterUpdateCallback(this.parameterValues).catch(error => {
+              console.error(`Error updating parameter ${parameterObject.id}:`, error);
+            });
           }
-        })
+        };
+        
+        console.log(`Adding color picker for parameter ${p}:`, colorConfig);
+        this.uiConfig.children?.push(colorConfig);
+        
       } else if (parameterObject.type === "StringList") {
         // cast to number
         props[p] = +parameterObject.defval;
@@ -124,19 +199,34 @@ export class ParameterUI implements IUiConfigContainer{
           })
         }
 
-        this.uiConfig.children?.push({
+        const dropdownConfig = {
           uuid: parameterObject.id,
           type: "dropdown",
           label: parameterObject.name,
           tooltip: description,
-          property: [props, p],
+          property: [props, p] as [any, string],
           children,
           onChange: () => {
-            this.parameterValues[parameterObject.id] = props[p] + '';
-            parameterUpdateCallback(this.parameterValues);
+            console.log(`Dropdown onChange for ${parameterObject.id}:`, {
+              value: props[p],
+              type: typeof props[p]
+            });
+            
+            this.parameterValues[parameterObject.id] = props[p].toString();
+            console.log(`Updated parameter ${parameterObject.id} to:`, props[p]);
+            
+            parameterUpdateCallback(this.parameterValues).catch(error => {
+              console.error(`Error updating parameter ${parameterObject.id}:`, error);
+            });
           }
-        })
+        };
+        
+        console.log(`Adding dropdown for parameter ${p}:`, dropdownConfig);
+        this.uiConfig.children?.push(dropdownConfig);
       }
     }
+    
+    console.log('Final uiConfig:', this.uiConfig);
+    console.log('Number of children in uiConfig:', this.uiConfig.children?.length || 0);
   }
 } 
