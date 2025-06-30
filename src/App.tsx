@@ -9,142 +9,10 @@ import { Slider } from './components/ui/slider'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/select'
 import { ChevronRight, Play, Download, Eye, ShoppingCart, Settings, CreditCard, Mail, Package, RotateCcw, Info, Sparkles, Zap, Star, Heart, Diamond, Palette, Ruler, Weight, Shield } from 'lucide-react'
 import WebgiViewer from './WebgiViewer'
+import { productConfigurator } from './data/productConfigurator'
+import { learningSteps } from './data/learningSteps'
+import { LearningStep } from './types'
 import './App.css'
-
-const productConfigurator = {
-  name: "Žiedas su akmeniu",
-  basePrice: 450,
-  image: "/src/assets/screenshots/joaze_lt_2025-06-17_19-34-22_6571.webp",
-  parameters: [
-    {
-      id: "metal",
-      name: "Metalas",
-      icon: <Palette className="w-5 h-5" />,
-      description: "Pasirinkite metalo tipą ir spalvą. Skirtingi metalai turi skirtingas savybes ir kainas.",
-      detailedInfo: "Metalas yra pagrindinis žiedo komponentas, lemiantis jo išvaizdą, tvarumą ir kainą. Aukso spalva priklauso nuo lydinio sudėties - baltas auksas maišomas su paladžiu ar platina, rožinis - su variu.",
-      options: [
-        { value: "silver", label: "Sidabras 925", priceModifier: 0, description: "Klasikinis pasirinkimas, tinkamas kasdieniam nešiojimui" },
-        { value: "gold-yellow", label: "Geltonas auksas", priceModifier: 200, description: "Tradicinis ir prestižinis pasirinkimas" },
-        { value: "gold-white", label: "Baltas auksas", priceModifier: 220, description: "Modernus ir elegantiškas" },
-        { value: "gold-rose", label: "Rožinis auksas", priceModifier: 210, description: "Romantiškas ir šiuolaikiškas" }
-      ],
-      currentValue: "silver"
-    },
-    {
-      id: "purity",
-      name: "Praba",
-      icon: <Shield className="w-5 h-5" />,
-      description: "Metalo grynumas. Aukštesnė praba reiškia didesnį grynojo metalo kiekį.",
-      detailedInfo: "Praba nurodo grynojo metalo kiekį lydinyje. 585 praba reiškia 58.5% grynojo aukso, 750 praba - 75%. Aukštesnė praba yra brangesnė, bet ir minkštesnė.",
-      options: [
-        { value: "585", label: "585 praba", priceModifier: 0, description: "Standartinė praba, tvirta ir patikima" },
-        { value: "750", label: "750 praba", priceModifier: 150, description: "Aukštesnė kokybė, intensyvesnė spalva" }
-      ],
-      currentValue: "585"
-    },
-    {
-      id: "stones",
-      name: "Žiedo akmenys",
-      icon: <Diamond className="w-5 h-5" />,
-      description: "Akmenų skaičius žiede. Daugiau akmenų padidina žiedo blizgesį ir kainą.",
-      detailedInfo: "Akmenų skaičius keičia žiedo išvaizdą ir kainą. Kiekvienas papildomas akmuo yra kruopščiai parinktas ir įtvirtintas, užtikrinant maksimalų blizgesį ir saugumą.",
-      min: 1,
-      max: 7,
-      currentValue: 3,
-      pricePerStone: 45
-    },
-    {
-      id: "size",
-      name: "Dydis",
-      icon: <Ruler className="w-5 h-5" />,
-      description: "Žiedo dydis (skersmuo). Svarbu tiksliai išmatuoti pirštą optimaliam tinkamumui.",
-      detailedInfo: "Žiedo dydis matuojamas pagal vidinio skersmens milimetrus. Rekomenduojame išmatuoti pirštą vakare, kai jis šiek tiek patinęs. Galime pasiūlyti nemokamą dydžio nustatymą mūsų salone.",
-      min: 15,
-      max: 22,
-      currentValue: 18,
-      priceModifier: 0
-    },
-    {
-      id: "comfort",
-      name: "Komfortas",
-      icon: <Heart className="w-5 h-5" />,
-      description: "Žiedo vidaus formos tipas, paveiks nešiojimo komfortą.",
-      detailedInfo: "Komforto profilis keičia žiedo vidaus formą. Comfort fit profilis turi šiek tiek išgaubtą vidinį paviršių, kuris geriau prisitaiko prie piršto formos ir yra patogesnė nešioti.",
-      options: [
-        { value: "standard", label: "Standartinis", priceModifier: 0, description: "Klasikinis plokščias profilis" },
-        { value: "comfort", label: "Comfort Fit", priceModifier: 25, description: "Ergonomiškas profilis patogesniam nešiojimui" }
-      ],
-      currentValue: "standard"
-    }
-  ]
-}
-
-const learningSteps = [
-  {
-    id: 1,
-    title: "Registracija / Prisijungimas",
-    description: "Sužinokite, kaip užsiregistruoti arba prisijungti prie JOAZE.LT platformos",
-    icon: <Eye className="w-6 h-6" />,
-    videoUrl: "https://www.youtube.com/embed/XLNh87thSGI",
-    content: `Šiame skyriuje sužinosite, kaip užsiregistruoti arba prisijungti prie JOAZE.LT platformos. Sukūrus paskyrą, galėsite stebėti savo užsakymus, peržiūrėti pirkinių istoriją ir mėgautis kitais privalumais.`
-  },
-  {
-    id: 2,
-    title: "Perėjimas į parduotuvę",
-    description: "Išmokite naršyti JOAZE.LT gaminių asortimentą",
-    icon: <ShoppingCart className="w-6 h-6" />,
-    videoUrl: "https://www.youtube.com/embed/UilOYdYVqxE",
-    content: `Norėdami pradėti naršyti JOAZE.LT gaminių asortimentą, turite pereiti į parduotuvę. Tai galite padaryti keliais būdais.`
-  },
-  {
-    id: 3,
-    title: "Konfigūracija – pasirinkimų aiškinimas",
-    description: "Sužinokite, kaip naudotis interaktyviu konfigūratoriumi",
-    icon: <Settings className="w-6 h-6" />,
-    videoUrl: "https://www.youtube.com/embed/moiandWE8A4",
-    content: `JOAZE.LT platformoje galite konfigūruoti juvelyrinius dirbinius pagal savo individualius poreikius, naudodamiesi interaktyviu konfigūratoriumi.`
-  },
-  {
-    id: 4,
-    title: "Kaina keičiasi realiu laiku",
-    description: "Stebėkite, kaip Jūsų pasirinkimai konfigūratoriuje tiesiogiai veikia produkto kainą.",
-    icon: <Zap className="w-6 h-6" />,
-    videoUrl: "https://www.youtube.com/embed/juEOCWn9pto",
-    content: `Vienas iš patogiausių JOAZE.LT konfigūratoriaus aspektų yra realaus laiko kainos atnaujinimas. Keisdami metalo tipą, prabą, akmenų skaičių ar dydį, iškart matysite, kaip keičiasi galutinė produkto kaina. Tai padeda priimti informuotus sprendimus ir išlaikyti biudžetą.`
-  },
-  {
-    id: 5,
-    title: "Įdėjimas į krepšelį ir peržiūra",
-    description: "Sužinokite, kaip pridėti sukonfigūruotą prekę į krepšelį ir peržiūrėti užsakymą.",
-    icon: <ShoppingCart className="w-6 h-6" />,
-    videoUrl: "https://www.youtube.com/embed/sRjATADPdaE",
-    content: `Kai esate patenkinti savo sukonfigūruotu produktu, spauskite mygtuką 'Įdėti į krepšelį'. Produktas bus pridėtas į Jūsų pirkinių krepšelį. Galite tęsti apsipirkimą arba pereiti į krepšelį, kad peržiūrėtumėte savo užsakymą. Krepšelyje galėsite koreguoti kiekius arba pašalinti prekes.`
-  },
-  {
-    id: 6,
-    title: "Atsiskaitymas",
-    description: "Detalus vadovas, kaip atlikti mokėjimą ir užbaigti užsakymą.",
-    icon: <CreditCard className="w-6 h-6" />,
-    videoUrl: "https://www.youtube.com/embed/eoByDGrR_Pw",
-    content: `Kai esate pasiruošę užbaigti užsakymą, pereikite į atsiskaitymo puslapį. Čia turėsite pasirinkti pristatymo būdą, įvesti pristatymo adresą ir pasirinkti mokėjimo metodą. JOAZE.LT palaiko įvairius mokėjimo būdus, įskaitant banko pavedimus ir elektroninius mokėjimus. Patvirtinkite užsakymą ir atlikite mokėjimą.`
-  },
-  {
-    id: 7,
-    title: "Patvirtinimas el. paštu",
-    description: "Ką daryti po užsakymo? Gaukite patvirtinimą ir sekite savo užsakymo eigą.",
-    icon: <Mail className="w-6 h-6" />,
-    videoUrl: "https://www.youtube.com/embed/sSjN0ChIHqU",
-    content: `Po sėkmingo atsiskaitymo, gausite patvirtinimo el. laišką į savo registruotą el. pašto adresą. Laiške bus pateikta visa užsakymo informacija, įskaitant užsakymo numerį, prekių sąrašą ir pristatymo detales. Išsaugokite šį el. laišką ateičiai.`
-  },
-  {
-    id: 8,
-    title: "Užsakymo stebėjimas",
-    description: "Sužinokite, kaip stebėti savo užsakymo būseną ir pristatymo eigą.",
-    icon: <Package className="w-6 h-6" />,
-    videoUrl: "https://www.youtube.com/embed/hBouBFensck",
-    content: `JOAZE.LT suteikia galimybę stebėti savo užsakymo būseną realiu laiku. Prisijungę prie savo paskyros, rasite skiltį 'Mano užsakymai', kurioje galėsite matyti visų savo užsakymų būseną, nuo apdorojimo iki išsiuntimo ir pristatymo. Taip pat gausite pranešimus el. paštu apie užsakymo būsenos pasikeitimus.`
-  }
-]
 
 function ProductConfiguratorComponent() {
   const [config, setConfig] = useState<Record<string, string | number>>({
@@ -164,15 +32,31 @@ function ProductConfiguratorComponent() {
   const handleShapeDiverInit = useCallback((sessionManager: any) => {
     console.log('ShapeDiver initialized, setting active state');
     sessionManagerRef.current = sessionManager;
-    setIsShapeDiverActive(true);
-    setIsShapeDiverLoading(false);
-    setShapeDiverError(null);
+    
+    // Check if the session manager actually has parameters
+    if (sessionManager && sessionManager.parameters && Object.keys(sessionManager.parameters).length > 0) {
+      console.log('ShapeDiver has parameters, activating');
+      setIsShapeDiverActive(true);
+      setIsShapeDiverLoading(false);
+      setShapeDiverError(null);
+    } else {
+      console.log('ShapeDiver initialized but no parameters found, using fallback');
+      setIsShapeDiverActive(false);
+      setIsShapeDiverLoading(false);
+      setShapeDiverError('ShapeDiver initialized but no parameters available. Using fallback configuration.');
+    }
   }, []);
 
   // Effect to handle session manager updates
   useEffect(() => {
     if (sessionManagerRef.current) {
       console.log('Session manager available:', sessionManagerRef.current);
+      // Double-check if parameters are actually available
+      if (sessionManagerRef.current.parameters && Object.keys(sessionManagerRef.current.parameters).length === 0) {
+        console.log('Session manager has no parameters, switching to fallback');
+        setIsShapeDiverActive(false);
+        setShapeDiverError('No ShapeDiver parameters found. Using fallback configuration.');
+      }
     }
   }, [sessionManagerRef.current]);
 
@@ -551,7 +435,7 @@ function App() {
             <div className="space-y-8">
               <h2 className="text-4xl font-bold text-white text-center">Mokymosi Vadovo Apžvalga</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {learningSteps.map(step => (
+                {learningSteps.map((step: LearningStep) => (
                   <Card 
                     key={step.id} 
                     className="cursor-pointer hover:shadow-xl transition-all duration-300 bg-slate-800 border-slate-700 hover:border-amber-500/50 hover:bg-slate-750"
@@ -580,7 +464,7 @@ function App() {
                     const guideContent = `JOAZE.LT - Interaktyvus Vartotojo Vadovas
 ==================================================
 
-${learningSteps.map(step => `
+${learningSteps.map((step: LearningStep) => `
 ${step.id}. ${step.title}
 ${'='.repeat(step.title.length + 3)}
 
@@ -624,7 +508,7 @@ ${'='.repeat(50)}
                   <CardContent className="fix-1a2b3c">
                     <nav>
                       <ul className="space-y-2">
-                        {learningSteps.map(step => (
+                        {learningSteps.map((step: LearningStep) => (
                           <li key={step.id}>
                             <Button
                               variant={selectedStep === step.id ? 'default' : 'ghost'}
