@@ -9,20 +9,20 @@ export interface ProductParameter {
   options?: ProductOption[]
   min?: number
   max?: number
-  pricePerStone?: number
-  priceModifier?: number
+  weightPerStone?: number
+  weightModifier?: number
 }
 
 export interface ProductOption {
   value: string
   label: string
-  priceModifier: number
+  weightModifier: number
   description: string
 }
 
 export interface ProductConfigurator {
   name: string
-  basePrice: number
+  baseWeight: number
   image: string
   parameters: ProductParameter[]
 }
@@ -46,7 +46,10 @@ export interface WebgiViewerProps {
 // Session Manager Types
 export interface SessionManager {
   parameters?: Record<string, any>
+  weight?: number | null
   customizeSession: (paramId: string, value: any) => void
+  setWeight: (weight: number) => void
+  weightUpdateHandler?: (weight: number) => void
   init: () => Promise<void>
 }
 

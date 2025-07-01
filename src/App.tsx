@@ -25,6 +25,7 @@ function ProductConfiguratorComponent() {
   const [isShapeDiverActive, setIsShapeDiverActive] = useState(false)
   const [isShapeDiverLoading, setIsShapeDiverLoading] = useState(true)
   const [shapeDiverError, setShapeDiverError] = useState<string | null>(null)
+  const [currentWeight, setCurrentWeight] = useState<number | null>(null)
   const paramsRef = useRef<HTMLDivElement>(null)
   const sessionManagerRef = useRef<any>(null)
 
@@ -32,6 +33,14 @@ function ProductConfiguratorComponent() {
   const handleShapeDiverInit = useCallback((sessionManager: any) => {
     console.log('ShapeDiver initialized, setting active state');
     sessionManagerRef.current = sessionManager;
+    
+    // Set up weight update handler
+    if (sessionManager) {
+      sessionManager.weightUpdateHandler = (weight: number) => {
+        console.log('Weight update received:', weight);
+        setCurrentWeight(weight);
+      };
+    }
     
     // Check if the session manager actually has parameters
     if (sessionManager && sessionManager.parameters && Object.keys(sessionManager.parameters).length > 0) {
@@ -73,19 +82,38 @@ function ProductConfiguratorComponent() {
     return () => clearTimeout(timeout);
   }, [isShapeDiverActive, isShapeDiverLoading]);
 
-  const calculatePrice = () => {
-    let price = productConfigurator.basePrice
+
+
+  const getWeight = () => {
+    // If we have a state weight from ShapeDiver, use it
+    if (currentWeight !== null && currentWeight !== undefined) {
+      return currentWeight;
+    }
+    
+    // If ShapeDiver is active and we have weight data, use it
+    if (isShapeDiverActive && sessionManagerRef.current?.weight !== null && sessionManagerRef.current?.weight !== undefined) {
+      return sessionManagerRef.current.weight;
+    }
+    
+    // Fallback to calculated weight based on configuration
+    let baseWeight = productConfigurator.baseWeight;
     productConfigurator.parameters.forEach(param => {
       if (param.options) {
         const selectedOption = param.options.find(opt => opt.value === config[param.id])
-        if (selectedOption) {
-          price += selectedOption.priceModifier
+        if (selectedOption && selectedOption.weightModifier) {
+          baseWeight += selectedOption.weightModifier;
         }
       } else if (param.id === 'stones') {
-        price += ((config.stones as number) - 1) * (param.pricePerStone ?? 0)
+        baseWeight += ((config.stones as number) - 1) * (param.weightPerStone ?? 0);
+      } else if (param.id === 'size') {
+        // Adjust weight based on ring size (larger size = more material)
+        const sizeDiff = (config.size as number) - 18; // 18mm is base size
+        baseWeight += sizeDiff * 0.1;
       }
-    })
-    return price
+    });
+    
+    // Round to 3 decimal places
+    return Math.round(baseWeight * 1000) / 1000;
   }
 
   const updateConfig = (paramId: string, value: string | number) => {
@@ -117,8 +145,8 @@ function ProductConfiguratorComponent() {
                 <p className="text-slate-300">Individualiai konfigūruojamas</p>
               </div>
               <div className="text-right">
-                <div className="text-3xl font-bold text-amber-400">€{calculatePrice()}</div>
-                <div className="text-sm text-slate-400">su PVM</div>
+                <div className="text-3xl font-bold text-amber-400">{getWeight()}g</div>
+                <div className="text-sm text-slate-400">svoris</div>
               </div>
             </div>
           </CardContent>
@@ -128,13 +156,13 @@ function ProductConfiguratorComponent() {
           <CardHeader className="fix-1a2b3c">
             <CardTitle className="flex items-center gap-2 text-white">
               <Zap className="w-5 h-5 text-amber-400" />
-              Kaina keičiasi realiu laiku
+              Svoris keičiasi realiu laiku
             </CardTitle>
           </CardHeader>
           <CardContent className="fix-1a2b3c">
             <p className="text-slate-300">
-              Kaina automatiškai atnaujinama pagal jūsų pasirinkimus ir dabartines metalų rinkos kainas.
-              Galutinė kaina gali šiek tiek skirtis dėl rinkos svyravimų.
+              Svoris automatiškai atnaujinamas pagal jūsų pasirinkimus ir 3D modelio geometriją.
+              Tikslus svoris priklauso nuo pasirinktų parametrų ir medžiagų.
             </p>
           </CardContent>
         </Card>
@@ -220,9 +248,7 @@ function ProductConfiguratorComponent() {
                                   <div className="font-medium text-white">{option.label}</div>
                                   <div className="text-sm text-slate-300">{option.description}</div>
                                 </div>
-                                {option.priceModifier > 0 && (
-                                  <Badge variant="secondary" className="bg-amber-500 text-slate-900">+€{option.priceModifier}</Badge>
-                                )}
+                                {/* Weight information could be added here if needed */}
                               </div>
                             </div>
                           ))}
@@ -242,9 +268,7 @@ function ProductConfiguratorComponent() {
                         <SelectItem key={option.value} value={option.value} className="text-white hover:bg-slate-700">
                           <div className="flex justify-between items-center w-full">
                             <span>{option.label}</span>
-                            {option.priceModifier > 0 && (
-                              <Badge variant="secondary" className="ml-2 bg-amber-500 text-slate-900">+€{option.priceModifier}</Badge>
-                            )}
+                            {/* Weight information could be added here if needed */}
                           </div>
                         </SelectItem>
                       ))}
@@ -258,7 +282,7 @@ function ProductConfiguratorComponent() {
                          param.id === 'size' ? `${config[param.id]} mm` : config[param.id]}
                       </span>
                       {param.id === 'stones' && Number(config[param.id]) > 1 && (
-                        <Badge variant="secondary" className="bg-amber-500 text-slate-900">+€{(Number(config[param.id]) - 1) * (param.pricePerStone ?? 0)}</Badge>
+                        <Badge variant="secondary" className="bg-amber-500 text-slate-900">+{(Number(config[param.id]) - 1) * (param.weightPerStone ?? 0.3)}g</Badge>
                       )}
                     </div>
                     <Slider
@@ -283,7 +307,7 @@ function ProductConfiguratorComponent() {
 
         <Button variant="default" size="lg" className="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold">
           <ShoppingCart className="w-5 h-5 mr-2" />
-          Įdėti į krepšelį - €{calculatePrice()}
+          Įdėti į krepšelį - {getWeight()}g
         </Button>
         
         {/* Debug section */}
@@ -296,6 +320,8 @@ function ProductConfiguratorComponent() {
               <p><strong>ShapeDiver Active:</strong> {isShapeDiverActive ? 'Yes' : 'No'}</p>
               <p><strong>ShapeDiver Loading:</strong> {isShapeDiverLoading ? 'Yes' : 'No'}</p>
               <p><strong>Session Manager:</strong> {sessionManagerRef.current ? 'Available' : 'Not available'}</p>
+              <p><strong>Current Weight:</strong> {getWeight()}g</p>
+              <p><strong>ShapeDiver Weight:</strong> {sessionManagerRef.current?.weight ? `${sessionManagerRef.current.weight}g` : 'Not available'}</p>
               <p><strong>Parameters Container:</strong> {paramsRef.current ? 'Found' : 'Not found'}</p>
               {paramsRef.current && (
                 <p><strong>Container Children:</strong> {paramsRef.current.children.length}</p>
@@ -311,6 +337,8 @@ function ProductConfiguratorComponent() {
                 console.log('ShapeDiver Active:', isShapeDiverActive);
                 console.log('ShapeDiver Loading:', isShapeDiverLoading);
                 console.log('Session Manager:', sessionManagerRef.current);
+                console.log('Current Weight:', getWeight());
+                console.log('ShapeDiver Weight:', sessionManagerRef.current?.weight);
                 console.log('Params Ref:', paramsRef.current);
                 
                 if (paramsRef.current) {
@@ -366,6 +394,41 @@ function ProductConfiguratorComponent() {
                 }}
               >
                 Test Parameter Update
+              </Button>
+            )}
+            
+            {/* Test weight setting button */}
+            {sessionManagerRef.current && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                onClick={() => {
+                  console.log('=== TESTING WEIGHT SETTING ===');
+                  // Set the weight from your ShapeDiver output
+                  sessionManagerRef.current.setWeight(11.260800155639647);
+                  console.log('Weight set to 11.261g');
+                }}
+              >
+                Set Test Weight (11.261g)
+              </Button>
+            )}
+            
+            {/* Test weight update callback */}
+            {sessionManagerRef.current && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                onClick={() => {
+                  console.log('=== TESTING WEIGHT UPDATE CALLBACK ===');
+                  // Simulate weight update through callback
+                  if (sessionManagerRef.current.weightUpdateHandler) {
+                    sessionManagerRef.current.weightUpdateHandler(11.260800155639647);
+                  }
+                }}
+              >
+                Test Weight Callback
               </Button>
             )}
           </CardContent>

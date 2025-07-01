@@ -543,9 +543,3 @@ body > .tp-rotv:not(.shapediver-params-container .tp-rotv) {
   flex: 1 !important;
   min-width: 0 !important;
 }
-.tp-rotv_b {
-  display: none !important;
-}
-.tp-fldv_b {
-  display: none !important;
-}

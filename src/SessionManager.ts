@@ -10,12 +10,14 @@ export class SessionManager {
 
   private loadedOutputVersions: { [key: string]: string | undefined } = {};
   private sessionApi?: ISessionApi;
+  private currentWeight: number | null = null;
 
   public customizationCounter = 0;
   public outputUpdateHandler?: (
     outputApi: IOutputApi,
     materialOutputApi?: IOutputApi
   ) => Promise<void>;
+  public weightUpdateHandler?: (weight: number) => void;
 
   // #endregion Properties (4)
 
@@ -30,13 +32,22 @@ export class SessionManager {
 
   // #endregion Constructors (1)
 
-  // #region Public Getters And Setters (1)
+  // #region Public Getters And Setters (2)
 
   public get parameters() {
     return this.sessionApi?.parameters;
   }
 
-  // #endregion Public Getters And Setters (1)
+  public get weight() {
+    return this.currentWeight;
+  }
+
+  public setWeight(weight: number) {
+    this.currentWeight = Math.round(weight * 1000) / 1000;
+    console.log("Weight manually set to:", this.currentWeight);
+  }
+
+  // #endregion Public Getters And Setters (2)
 
   // #region Public Methods (2)
 
@@ -96,6 +107,75 @@ export class SessionManager {
   // #region Private Methods (1)
 
   /**
+   * Extract weight from output API data
+   */
+  private extractWeightFromOutput(outputApi: IOutputApi): number | null {
+    try {
+      console.log("Extracting weight from output:", outputApi);
+      
+      if (!outputApi.content || outputApi.content.length === 0) {
+        console.log("No content in output");
+        return null;
+      }
+
+      // Look for data format output
+      for (const contentItem of outputApi.content) {
+        console.log("Processing content item:", contentItem);
+        
+        if (contentItem.format === 'data' && contentItem.data) {
+          console.log("Found data format, processing data array:", contentItem.data);
+          
+          // Navigate through the data structure to find svoris
+          for (const dataItem of contentItem.data) {
+            console.log("Processing data item:", dataItem);
+            
+            if (dataItem.branch && Array.isArray(dataItem.branch)) {
+              console.log("Found branch array:", dataItem.branch);
+              
+              for (const branchItem of dataItem.branch) {
+                console.log("Processing branch item:", branchItem);
+                
+                // Check for direct svoris property
+                if (branchItem.svoris !== undefined) {
+                  console.log("Found direct svoris:", branchItem.svoris);
+                  const roundedWeight = Math.round(branchItem.svoris * 1000) / 1000;
+                  console.log("Rounded weight:", roundedWeight);
+                  return roundedWeight;
+                }
+                
+                // Check for nested AUKSAS object with svoris
+                if (branchItem.AUKSAS && branchItem.AUKSAS.svoris !== undefined) {
+                  console.log("Found AUKSAS.svoris:", branchItem.AUKSAS.svoris);
+                  const roundedWeight = Math.round(branchItem.AUKSAS.svoris * 1000) / 1000;
+                  console.log("Rounded weight:", roundedWeight);
+                  return roundedWeight;
+                }
+                
+                // Check for any nested object with svoris
+                for (const key in branchItem) {
+                  const nestedObj = branchItem[key];
+                  if (nestedObj && typeof nestedObj === 'object' && nestedObj.svoris !== undefined) {
+                    console.log(`Found svoris in ${key}:`, nestedObj.svoris);
+                    const roundedWeight = Math.round(nestedObj.svoris * 1000) / 1000;
+                    console.log("Rounded weight:", roundedWeight);
+                    return roundedWeight;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      
+      console.log("No svoris found in output data");
+      return null;
+    } catch (error) {
+      console.error("Error extracting weight from output:", error);
+      return null;
+    }
+  }
+
+  /**
    * Processing of output updates. Compares versions of outputs and
    * calls the handler for output updates in case of changes.
    * @param forceUpdate Whether calling the output update handler should be forced
@@ -110,6 +190,18 @@ export class SessionManager {
 
       const outputVersion = outputApi.version
       const prevOutputVersion = this.loadedOutputVersions[outputId];
+
+      // Always extract weight from the output, regardless of version changes
+      const weight = this.extractWeightFromOutput(outputApi);
+      if (weight !== null) {
+        this.currentWeight = weight;
+        console.log("Extracted weight:", weight);
+        
+        // Notify weight update handler if available
+        if (this.weightUpdateHandler) {
+          this.weightUpdateHandler(weight);
+        }
+      }
 
       /**
        * here we check the output version
